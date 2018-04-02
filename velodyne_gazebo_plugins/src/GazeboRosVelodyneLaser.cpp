@@ -49,6 +49,10 @@
 #include <sensor_msgs/PointCloud2.h>
 
 #include <tf/tf.h>
+// #include <gazebo math="" math.hh="">
+// #include <gazebo/math/Angle.hh>
+// #include <ignition/math.hh>
+// #include </usr/include/ignition/math4/ignition/math.hh>
 
 namespace gazebo
 {
@@ -208,11 +212,11 @@ void GazeboRosVelodyneLaser::ConnectCb()
 void GazeboRosVelodyneLaser::OnScan(ConstLaserScanStampedPtr& _msg)
 {
 #if GAZEBO_MAJOR_VERSION >= 7
-  const math::Angle maxAngle = parent_ray_sensor_->AngleMax();
-  const math::Angle minAngle = parent_ray_sensor_->AngleMin();
+  const ignition::math::Angle  maxAngle = parent_ray_sensor_->AngleMax();
+  const ignition::math::Angle minAngle = parent_ray_sensor_->AngleMin();
 
-  const double maxRange = parent_ray_sensor_->RangeMax();
-  const double minRange = parent_ray_sensor_->RangeMin();
+  const ignition::math::Angle maxRange = parent_ray_sensor_->RangeMax();
+  const ignition::math::Angle minRange = parent_ray_sensor_->RangeMin();
 
   const int rayCount = parent_ray_sensor_->RayCount();
   const int rangeCount = parent_ray_sensor_->RangeCount();
@@ -222,11 +226,15 @@ void GazeboRosVelodyneLaser::OnScan(ConstLaserScanStampedPtr& _msg)
   const int verticalRangeCount = parent_ray_sensor_->VerticalRangeCount();
   assert(verticalRayCount == verticalRangeCount);
 
-  const math::Angle verticalMaxAngle = parent_ray_sensor_->VerticalAngleMax();
-  const math::Angle verticalMinAngle = parent_ray_sensor_->VerticalAngleMin();
+  const ignition::math::Angle verticalMaxAngle = parent_ray_sensor_->VerticalAngleMax();
+  const ignition::math::Angle verticalMinAngle = parent_ray_sensor_->VerticalAngleMin();
+
+  const double maxRange_d = maxRange.Radian();
+  const double minRange_d = minRange.Radian();
+
 #else
-  math::Angle maxAngle = parent_ray_sensor_->GetAngleMax();
-  math::Angle minAngle = parent_ray_sensor_->GetAngleMin();
+  ignition::math::Angle maxAngle = parent_ray_sensor_->GetAngleMax();
+  ignition::math::Angle minAngle = parent_ray_sensor_->GetAngleMin();
 
   const double maxRange = parent_ray_sensor_->GetRangeMax();
   const double minRange = parent_ray_sensor_->GetRangeMin();
@@ -239,15 +247,17 @@ void GazeboRosVelodyneLaser::OnScan(ConstLaserScanStampedPtr& _msg)
   const int verticalRangeCount = parent_ray_sensor_->GetVerticalRangeCount();
   assert(verticalRayCount == verticalRangeCount);
 
-  const math::Angle verticalMaxAngle = parent_ray_sensor_->GetVerticalAngleMax();
-  const math::Angle verticalMinAngle = parent_ray_sensor_->GetVerticalAngleMin();
+  const ignition::math::Angle verticalMaxAngle = parent_ray_sensor_->GetVerticalAngleMax();
+  const ignition::math::Angle verticalMinAngle = parent_ray_sensor_->GetVerticalAngleMin();
 #endif
 
   const double yDiff = maxAngle.Radian() - minAngle.Radian();
   const double pDiff = verticalMaxAngle.Radian() - verticalMinAngle.Radian();
 
-  const double MIN_RANGE = std::max(min_range_, minRange);
-  const double MAX_RANGE = std::min(max_range_, maxRange - minRange - 0.01);
+  const double MIN_RANGE = std::max(min_range_, minRange_d);
+  const double MAX_RANGE = std::min(max_range_, maxRange_d - minRange_d - 0.01);
+  // const double MIN_RANGE = ignition::math::max(min_range_, minRange);
+  // const double MAX_RANGE = ignition::math::min(max_range_, maxRange - minRange - 0.01);
 
   // Populate message fields
   const uint32_t POINT_STEP = 32;
@@ -283,7 +293,7 @@ void GazeboRosVelodyneLaser::OnScan(ConstLaserScanStampedPtr& _msg)
     for (i = 0; i < rangeCount; i++) {
 
       // Range and noise
-      double r = std::min(_msg->scan().ranges(i + j * rangeCount), maxRange-minRange);
+      double r = std::min(_msg->scan().ranges(i + j * rangeCount), maxRange_d-minRange_d);
       if (gaussian_noise_ != 0.0) {
         r += gaussianKernel(0,gaussian_noise_);
       }

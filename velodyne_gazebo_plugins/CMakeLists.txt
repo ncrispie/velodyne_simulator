@@ -6,6 +6,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   tf
   gazebo_ros
+  
+
 )
 find_package(gazebo REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
@@ -41,3 +43,5 @@ install(TARGETS gazebo_ros_velodyne_laser
 install(DIRECTORY include/${PROJECT_NAME}/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
+
+
